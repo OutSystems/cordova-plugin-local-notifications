@@ -211,8 +211,17 @@ public class LocalNotification extends CordovaPlugin {
      *                JavaScript.
      */
     private void check (CallbackContext command) {
-        boolean allowed = getNotMgr().hasPermission();
-        success(command, allowed);
+        /*
+         * Always true so the code can proceed and schedule the notification.
+         * If false is returned, then no schedule is created.
+         *
+         * Why was this necessary?
+         * By getting this value from 'getNotMgr().hasPermission()', a permission request
+         * popup is presented. However, the user won't have enough time to grand the permission
+         * before the success is sent with 'false' value.
+         * This prevented the notification from being schedule the first time the app opens.
+         */
+        success(command, true);
     }
 
     /**
