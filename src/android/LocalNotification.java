@@ -27,6 +27,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -35,6 +36,7 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -62,6 +64,9 @@ import static de.appplant.cordova.plugin.notification.Notification.Type.TRIGGERE
 @SuppressWarnings({"Convert2Diamond", "Convert2Lambda"})
 public class LocalNotification extends CordovaPlugin {
 
+    private static final int NOTIFICATION_PERMISSION_CODE = 43334;
+    private static final String NOTIFICATION_PERMISSION = "android.permission.POST_NOTIFICATIONS";
+
     // Reference to the web view for static access
     private static WeakReference<CordovaWebView> webView = null;
 
@@ -73,6 +78,10 @@ public class LocalNotification extends CordovaPlugin {
 
     // Launch details
     private static Pair<Integer, String> launchDetails;
+
+    //Save callback context
+    private CallbackContext callbackContext = null;
+    private JSONArray notificationArguments = null;
 
     /**
      * Called after plugin construction and fields have been initialized.
@@ -204,6 +213,14 @@ public class LocalNotification extends CordovaPlugin {
         launchDetails = null;
     }
 
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+        super.onRequestPermissionResult(requestCode, permissions, grantResults);
+        if(requestCode == NOTIFICATION_PERMISSION_CODE){
+            scheduleWithPermission();
+        }
+    }
+
     /**
      * Ask if user has enabled permission for local notifications.
      *
@@ -272,10 +289,22 @@ public class LocalNotification extends CordovaPlugin {
      *                JavaScript.
      */
     private void schedule (JSONArray toasts, CallbackContext command) {
+        callbackContext = command;
+        notificationArguments = toasts;
+
+        if(Build.VERSION.SDK_INT >= 33 && !PermissionHelper.hasPermission(this, NOTIFICATION_PERMISSION)){
+            PermissionHelper.requestPermission(this, NOTIFICATION_PERMISSION_CODE, NOTIFICATION_PERMISSION);
+        }
+        else{
+            scheduleWithPermission();
+        }
+    }
+
+    private void scheduleWithPermission(){
         Manager mgr = getNotMgr();
 
-        for (int i = 0; i < toasts.length(); i++) {
-            JSONObject dict    = toasts.optJSONObject(i);
+        for (int i = 0; i < notificationArguments.length(); i++) {
+            JSONObject dict    = notificationArguments.optJSONObject(i);
             Options options    = new Options(cordova.getActivity(), dict);
             Request request    = new Request(options);
             Notification toast = mgr.schedule(request, TriggerReceiver.class);
@@ -284,8 +313,7 @@ public class LocalNotification extends CordovaPlugin {
                 fireEvent("add", toast);
             }
         }
-
-        check(command);
+        success(callbackContext, true);
     }
 
     /**
