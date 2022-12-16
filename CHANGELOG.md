@@ -5,6 +5,9 @@ Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-lo
 
 #### Unreleased
 
+### 16-12-2022
+- Removed dependency to jcenter [RMET-2036](https://outsystemsrd.atlassian.net/browse/RMET-2036)
+
 #### Version 0.9.9 (21.09.2022)
 - Fix required for Android 13 regarding notification permissions (https://outsystemsrd.atlassian.net/browse/RMET-1833)
 
