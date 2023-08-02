@@ -24,10 +24,12 @@
 package de.appplant.cordova.plugin.notification;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -88,6 +90,15 @@ public final class Manager {
      */
     public boolean hasPermission () {
         return getNotCompMgr().areNotificationsEnabled();
+    }
+
+    /**
+     * Checks whether or not the app has permission to schedule exact alarms.
+     * @return true if there's permission to schedule exact alarms. false otherwise.
+     */
+    public boolean canScheduleExactAlarms() {
+        // Should always be true when working with Android 12 (API level 32) or below.
+        return Build.VERSION.SDK_INT <= 32 || getAlarmMgr().canScheduleExactAlarms();
     }
 
     /**
@@ -430,6 +441,12 @@ public final class Manager {
         return NotificationManagerCompat.from(context);
     }
 
+    /**
+     * Alarm manager for the application.
+     */
+    private AlarmManager getAlarmMgr () {
+        return (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    }
 }
 
 // codebeat:enable[TOO_MANY_FUNCTIONS]

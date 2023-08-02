@@ -692,6 +692,31 @@ public final class Options {
         return (hex.charAt(0) == '#') ? hex.substring(1) : hex;
     }
 
+    /**
+     * Gets the property that dictates if the notification should be scheduled with an exact alarm.
+     */
+    public boolean getIsExactSchedule() {
+        return options.optBoolean("isExactSchedule", false);
+    }
+
+    /**
+     * Sets the property that dictates if the notification should be scheduled with an exact alarm.
+     */
+    public void setIsExactSchedule(Boolean newValue) {
+        try {
+            options.put("isExactSchedule", newValue);
+        } catch (Exception ignore) {
+            ignore.getMessage();
+            // for now...
+        }
+    }
+
+    /**
+     * Gets the property that dictates if its mandatory the notification should be scheduled with an exact alarm.
+     */
+    public boolean getIsExactMandatory() {
+        return options.optBoolean("isExactMandatory", false);
+    }
 }
 
 // codebeat:enable[TOO_MANY_FUNCTIONS]
