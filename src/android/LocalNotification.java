@@ -229,7 +229,7 @@ public class LocalNotification extends CordovaPlugin {
     public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
         super.onRequestPermissionResult(requestCode, permissions, grantResults);
         if(requestCode == NOTIFICATION_PERMISSION_CODE){
-            scheduleWithPermission();
+            schedule(notificationArguments, callbackContext);
         }
     }
 
@@ -380,8 +380,8 @@ public class LocalNotification extends CordovaPlugin {
      *
      */
     private void requestScheduleExactAlarmPermission() {
-        requestingExactAlarmPermission = true;
         cordova.getContext().startActivity(new Intent(ACTION_REQUEST_SCHEDULE_EXACT_ALARM));
+        requestingExactAlarmPermission = true;
     }
 
     /**
@@ -407,7 +407,7 @@ public class LocalNotification extends CordovaPlugin {
             }
         }
 
-        scheduleWithPermission();
+        schedule(notificationArguments, callbackContext);
     }
 
     /**

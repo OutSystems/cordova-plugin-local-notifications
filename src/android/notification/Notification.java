@@ -255,21 +255,46 @@ public final class Notification {
                 switch (options.getPrio()) {
                     case PRIORITY_MIN:
                         mgr.setExact(RTC, time, pi);
+                        scheduleNotification(false, RTC, time, pi);
                         break;
                     case PRIORITY_MAX:
                         if (SDK_INT >= M) {
-                            mgr.setExactAndAllowWhileIdle(RTC_WAKEUP, time, pi);
+                            scheduleNotification(true, RTC_WAKEUP, time, pi);
                         } else {
-                            mgr.setExact(RTC, time, pi);
+                            scheduleNotification(false, RTC, time, pi);
                         }
                         break;
                     default:
-                        mgr.setExact(RTC_WAKEUP, time, pi);
+                        scheduleNotification(false, RTC_WAKEUP, time, pi);
                         break;
                 }
             } catch (Exception ignore) {
                 // Samsung devices have a known bug where a 500 alarms limit
                 // can crash the app
+            }
+        }
+    }
+
+    private void scheduleNotification(boolean allowWhileIdle,
+                                      int type,
+                                      long triggerMillis,
+                                      PendingIntent operation) {
+
+        AlarmManager mgr = getAlarmMgr();
+        if(allowWhileIdle) {
+            if(options.getIsExactSchedule()) {
+                mgr.setExactAndAllowWhileIdle(type, triggerMillis, operation);
+            }
+            else {
+                mgr.setAndAllowWhileIdle(type, triggerMillis, operation);
+            }
+        }
+        else {
+            if(options.getIsExactSchedule()) {
+                mgr.setExact(type, triggerMillis, operation);
+            }
+            else {
+                mgr.set(type, triggerMillis, operation);
             }
         }
     }
