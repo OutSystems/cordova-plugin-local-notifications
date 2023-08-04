@@ -86,7 +86,11 @@ public class LocalNotification extends CordovaPlugin {
     private CallbackContext callbackContext = null;
     private JSONArray notificationArguments = null;
 
-    // Used when trying to schedule a notification with exact alarm
+    /**
+     * We need this variable because the onResume is being called when user
+     * grants permissions to receive notifications. What a mess.
+     */
+    private boolean requestingNotificationsPermissions = false;
     private boolean requestingExactAlarmPermission = false;
     private OSLCNOError warning = null;
 
@@ -110,11 +114,18 @@ public class LocalNotification extends CordovaPlugin {
         super.onResume(multitasking);
         deviceready();
 
-        // check if this was a permission request for scheduling exact alarms
-        if(requestingExactAlarmPermission) {
+        if(!requestingNotificationsPermissions && requestingExactAlarmPermission) {
             requestingExactAlarmPermission = false;
             onScheduleExactAlarmPermissionResult();
         }
+
+        requestingNotificationsPermissions = false;
+    }
+
+    @Override
+    public void onPause(boolean multitasking) {
+        super.onPause(multitasking);
+
     }
 
     /**
@@ -306,6 +317,7 @@ public class LocalNotification extends CordovaPlugin {
         notificationArguments = toasts;
 
         if(Build.VERSION.SDK_INT >= 33 && !PermissionHelper.hasPermission(this, NOTIFICATION_PERMISSION)){
+            requestingNotificationsPermissions = true;
             PermissionHelper.requestPermission(this, NOTIFICATION_PERMISSION_CODE, NOTIFICATION_PERMISSION);
         }
         else if(hasAnyExactNotification() && !getNotMgr().canScheduleExactAlarms()) {
@@ -384,8 +396,8 @@ public class LocalNotification extends CordovaPlugin {
      *
      */
     private void requestScheduleExactAlarmPermission() {
-        cordova.getContext().startActivity(new Intent(ACTION_REQUEST_SCHEDULE_EXACT_ALARM));
         requestingExactAlarmPermission = true;
+        cordova.getContext().startActivity(new Intent(ACTION_REQUEST_SCHEDULE_EXACT_ALARM));
     }
 
     /**
@@ -406,6 +418,7 @@ public class LocalNotification extends CordovaPlugin {
             else {
                 /*  permission was denied and there's no mandatory exact notification
                  *  change all notifications to inexact and continue flow normally
+                 *  send a warning when execution is done
                  */
                 setAllNotificationsAsInexact();
                 warning = OSLCNOError.EXACT_PERMISSION_WARNING;
