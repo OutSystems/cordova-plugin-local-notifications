@@ -310,7 +310,9 @@ public class LocalNotification extends CordovaPlugin {
         callbackContext = command;
         notificationArguments = toasts;
 
-        if(Build.VERSION.SDK_INT >= 33 && !PermissionHelper.hasPermission(this, NOTIFICATION_PERMISSION)){
+        if(Build.VERSION.SDK_INT >= 33
+        && !PermissionHelper.hasPermission(this, NOTIFICATION_PERMISSION)
+        && !requestingNotificationsPermissions){
             requestingNotificationsPermissions = true;
             PermissionHelper.requestPermission(this, NOTIFICATION_PERMISSION_CODE, NOTIFICATION_PERMISSION);
         }
