@@ -695,19 +695,19 @@ public final class Options {
     /**
      * Gets the property that dictates if the notification should be scheduled with an exact alarm.
      */
-    public boolean getIsExactSchedule() {
-        return options.optBoolean("isExactSchedule", false);
+    public boolean getIsExactNotification() {
+        return options.optBoolean("isExactNotification", false);
     }
 
     /**
      * Sets the property that dictates if the notification should be scheduled with an exact alarm.
      */
-    public void setIsExactSchedule(Boolean newValue) {
+    public void setIsExactNotification(Boolean newValue) {
         try {
-            options.put("isExactSchedule", newValue);
+            options.put("isExactNotification", newValue);
         } catch (Exception ignore) {
             ignore.getMessage();
-            // for now...
+            // this should never happen...
         }
     }
 

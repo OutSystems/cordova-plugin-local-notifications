@@ -88,6 +88,7 @@ public class LocalNotification extends CordovaPlugin {
 
     // Used when trying to schedule a notification with exact alarm
     private boolean requestingExactAlarmPermission = false;
+    private OSLCNOError warning = null;
 
     /**
      * Called after plugin construction and fields have been initialized.
@@ -328,11 +329,14 @@ public class LocalNotification extends CordovaPlugin {
                 fireEvent("add", toast);
             }
         }
-        success(callbackContext, true);
+
+        sendScheduleResult(callbackContext, PluginResult.Status.OK, warning);
+        warning = null;
+
     }
 
     /**
-     * Check is there's any notification to be scheduled as exact.
+     * Checks if there's any notification to be scheduled as exact.
      *
      * @return true if there's at least one exact notification. false otherwise.
      */
@@ -340,7 +344,7 @@ public class LocalNotification extends CordovaPlugin {
         for (int i = 0; i < notificationArguments.length(); i++) {
             JSONObject dict    = notificationArguments.optJSONObject(i);
             Options options    = new Options(cordova.getActivity(), dict);
-            if(options.getIsExactSchedule()) {
+            if(options.getIsExactNotification()) {
                 return true;
             }
         }
@@ -348,7 +352,7 @@ public class LocalNotification extends CordovaPlugin {
     }
 
     /**
-     * Check is there's any notification that is mandatory to be scheduled as exact.
+     * Checks if there's any notification that is mandatory to be scheduled as exact.
      *
      * @return true if there's at least one mandatory notification. false otherwise.
      */
@@ -370,7 +374,7 @@ public class LocalNotification extends CordovaPlugin {
         for (int i = 0; i < notificationArguments.length(); i++) {
             JSONObject dict    = notificationArguments.optJSONObject(i);
             Options options    = new Options(cordova.getActivity(), dict);
-            options.setIsExactSchedule(false);
+            options.setIsExactNotification(false);
         }
     }
 
@@ -396,7 +400,7 @@ public class LocalNotification extends CordovaPlugin {
                 /*  permission was denied but there's at least one mandatory exact notification
                  *  send an error and finish execution
                  */
-                error(callbackContext, "Error: 123123");
+                sendScheduleResult(callbackContext, PluginResult.Status.ERROR, OSLCNOError.EXACT_PERMISSION_ERROR);
                 return;
             }
             else {
@@ -404,6 +408,7 @@ public class LocalNotification extends CordovaPlugin {
                  *  change all notifications to inexact and continue flow normally
                  */
                 setAllNotificationsAsInexact();
+                warning = OSLCNOError.EXACT_PERMISSION_WARNING;
             }
         }
 
@@ -659,9 +664,17 @@ public class LocalNotification extends CordovaPlugin {
      * Invoke error callback with a string boolean argument.
      *
      */
-    private void error(CallbackContext command, String arg) {
-        PluginResult result = new PluginResult(PluginResult.Status.ERROR, arg);
-        command.sendPluginResult(result);
+    private void sendScheduleResult(CallbackContext command,
+                                    PluginResult.Status status,
+                                    OSLCNOError error) {
+
+        if(error == null) {
+            command.sendPluginResult(new PluginResult(status));
+            return;
+        }
+
+        JSONObject errorJSON = error.toJSONObject();;
+        command.sendPluginResult(new PluginResult(status, errorJSON));
     }
 
     /**

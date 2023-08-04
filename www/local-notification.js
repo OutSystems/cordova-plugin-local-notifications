@@ -57,7 +57,9 @@ exports._defaults = {
     title         : '',
     trigger       : { type : 'calendar' },
     vibrate       : false,
-    wakeup        : true
+    wakeup        : true,
+    isExactNotification: true,
+    isExactMandatory: false
 };
 
 // Event listener
@@ -97,7 +99,7 @@ exports.requestPermission = function (callback, scope) {
  *
  * @return [ Void ]
  */
-exports.schedule = function (msgs, callback, scope, args) {
+exports.schedule = function (msgs, callback, errorCallback, scope, args) {
     var fn = function (granted) {
         var toasts = this._toArray(msgs);
 
@@ -112,7 +114,7 @@ exports.schedule = function (msgs, callback, scope, args) {
             this._convertProperties(toast);
         }
 
-        this._exec('schedule', toasts, callback, scope);
+        this._exec_with_error('schedule', toasts, callback, errorCallback, scope);
     };
 
     if (args && args.skipPermission) {
@@ -915,6 +917,45 @@ exports._exec = function (action, args, callback, scope) {
     }
 
     exec(fn, null, 'LocalNotification', action, params);
+};
+
+/**
+ * Execute the native counterpart with error callback
+ *
+ * @param [ String ]  action   The name of the action.
+ * @param [ Array ]   args     Array of arguments.
+ * @param [ Function] callback The callback function.
+ * @param [ Function] errorCallback The error callback function.
+ * @param [ Object ] scope     The scope for the function.
+ *
+ * @return [ Void ]
+ */
+exports._exec_with_error = function (action, args, callback, errorCallback, scope) {
+    var fn     = this._createCallbackFn(callback, scope),
+        params = [];
+
+    var efn = this._createCallbackFn(errorCallback, scope);
+    if (Array.isArray(args)) {
+        params = args;
+    } else if (args) {
+        params.push(args);
+    }
+
+    exec(fn, efn, 'LocalNotification', action, params);
+};
+
+exports._exec_with_error = function (action, args, successCallback, errorCallback, scope) {
+    let sfn = this._createCallbackFn(successCallback, scope);
+    let efn = this._createCallbackFn(errorCallback, scope);
+    params = [];
+
+    if (Array.isArray(args)) {
+        params = args;
+    } else if (args) {
+        params.push(args);
+    }
+
+    exec(sfn, efn, 'LocalNotification', action, params);
 };
 
 /**

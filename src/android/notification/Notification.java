@@ -33,7 +33,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.collection.ArraySet;
 import androidx.core.util.Pair;
 
-import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -282,7 +281,7 @@ public final class Notification {
 
         AlarmManager mgr = getAlarmMgr();
         if(allowWhileIdle) {
-            if(options.getIsExactSchedule()) {
+            if(options.getIsExactNotification()) {
                 mgr.setExactAndAllowWhileIdle(type, triggerMillis, operation);
             }
             else {
@@ -290,7 +289,7 @@ public final class Notification {
             }
         }
         else {
-            if(options.getIsExactSchedule()) {
+            if(options.getIsExactNotification()) {
                 mgr.setExact(type, triggerMillis, operation);
             }
             else {
