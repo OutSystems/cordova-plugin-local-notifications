@@ -121,13 +121,7 @@ public class LocalNotification extends CordovaPlugin {
 
         requestingNotificationsPermissions = false;
     }
-
-    @Override
-    public void onPause(boolean multitasking) {
-        super.onPause(multitasking);
-
-    }
-
+    
     /**
      * The final call you receive before your activity is destroyed.
      */
