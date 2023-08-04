@@ -267,7 +267,14 @@ public final class Notification {
                         scheduleNotification(false, RTC_WAKEUP, time, pi);
                         break;
                 }
-            } catch (Exception ignore) {
+            }
+            catch(SecurityException se) {
+                // thrown when trying to schedule an exact notification without permissions
+                // should never happen. Let's log just in case.
+                Log.e("notification", "Caught security exception when scheduling alarm.");
+                se.printStackTrace();
+            }
+            catch (Exception ignore) {
                 // Samsung devices have a known bug where a 500 alarms limit
                 // can crash the app
             }

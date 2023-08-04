@@ -121,7 +121,7 @@ public class LocalNotification extends CordovaPlugin {
 
         requestingNotificationsPermissions = false;
     }
-    
+
     /**
      * The final call you receive before your activity is destroyed.
      */

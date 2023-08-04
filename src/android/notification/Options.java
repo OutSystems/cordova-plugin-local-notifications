@@ -32,6 +32,7 @@ import android.net.Uri;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.MessagingStyle.Message;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -705,9 +706,10 @@ public final class Options {
     public void setIsExactNotification(Boolean newValue) {
         try {
             options.put("isExactNotification", newValue);
-        } catch (Exception ignore) {
-            ignore.getMessage();
-            // this should never happen...
+        } catch (Exception e) {
+            // this should never happen. Let's log just in case.
+            Log.e("options", "Caught security exception when setting IsExactNotification: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
