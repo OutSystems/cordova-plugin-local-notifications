@@ -272,7 +272,6 @@ public final class Notification {
                 // thrown when trying to schedule an exact notification without permissions
                 // should never happen. Let's log just in case.
                 Log.e("notification", "Caught security exception when scheduling alarm.");
-                se.printStackTrace();
             }
             catch (Exception ignore) {
                 // Samsung devices have a known bug where a 500 alarms limit
@@ -295,13 +294,11 @@ public final class Notification {
                 mgr.setAndAllowWhileIdle(type, triggerMillis, operation);
             }
         }
+        else if(options.getIsExactNotification()) {
+            mgr.setExact(type, triggerMillis, operation);
+        }
         else {
-            if(options.getIsExactNotification()) {
-                mgr.setExact(type, triggerMillis, operation);
-            }
-            else {
-                mgr.set(type, triggerMillis, operation);
-            }
+            mgr.set(type, triggerMillis, operation);
         }
     }
 

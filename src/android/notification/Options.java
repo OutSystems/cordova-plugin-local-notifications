@@ -709,7 +709,6 @@ public final class Options {
         } catch (Exception e) {
             // this should never happen. Let's log just in case.
             Log.e("options", "Caught security exception when setting IsExactNotification: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

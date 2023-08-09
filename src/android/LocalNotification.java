@@ -48,6 +48,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import de.appplant.cordova.plugin.notification.Manager;
 import de.appplant.cordova.plugin.notification.Notification;
@@ -92,7 +93,7 @@ public class LocalNotification extends CordovaPlugin {
      */
     private boolean requestingNotificationsPermissions = false;
     private boolean requestingExactAlarmPermission = false;
-    private OSLCNOError warning = null;
+    private OSLCNOWarning warning = null;
 
     /**
      * Called after plugin construction and fields have been initialized.
@@ -349,14 +350,7 @@ public class LocalNotification extends CordovaPlugin {
      * @return true if there's at least one exact notification. false otherwise.
      */
     private boolean hasAnyExactNotification() {
-        for (int i = 0; i < notificationArguments.length(); i++) {
-            JSONObject dict    = notificationArguments.optJSONObject(i);
-            Options options    = new Options(cordova.getActivity(), dict);
-            if(options.getIsExactNotification()) {
-                return true;
-            }
-        }
-        return false;
+        return findOptionsWithPredicate(Options::getIsExactNotification);
     }
 
     /**
@@ -365,10 +359,20 @@ public class LocalNotification extends CordovaPlugin {
      * @return true if there's at least one mandatory notification. false otherwise.
      */
     private boolean hasAnyMandatoryExactNotification() {
+        return findOptionsWithPredicate(Options::getIsExactMandatory);
+    }
+
+    /**
+     * Applies a predicate for all options from notification arguments
+     *
+     * @param predicate the predicate to apply
+     * @return
+     */
+    private boolean findOptionsWithPredicate(Predicate<Options> predicate) {
         for (int i = 0; i < notificationArguments.length(); i++) {
-            JSONObject dict    = notificationArguments.optJSONObject(i);
-            Options options    = new Options(cordova.getActivity(), dict);
-            if(options.getIsExactMandatory()) {
+            JSONObject dict = notificationArguments.optJSONObject(i);
+            Options options = new Options(cordova.getActivity(), dict);
+            if(predicate.test(options)) {
                 return true;
             }
         }
@@ -408,17 +412,15 @@ public class LocalNotification extends CordovaPlugin {
                 /*  permission was denied but there's at least one mandatory exact notification
                  *  send an error and finish execution
                  */
-                sendScheduleResult(callbackContext, PluginResult.Status.ERROR, OSLCNOError.EXACT_PERMISSION_ERROR);
+                sendScheduleResult(callbackContext, PluginResult.Status.ERROR, OSLCNOError.EXACT_PERMISSION);
                 return;
             }
-            else {
-                /*  permission was denied and there's no mandatory exact notification
-                 *  change all notifications to inexact and continue flow normally
-                 *  send a warning when execution is done
-                 */
-                setAllNotificationsAsInexact();
-                warning = OSLCNOError.EXACT_PERMISSION_WARNING;
-            }
+            /*  permission was denied and there's no mandatory exact notification
+             *  change all notifications to inexact and continue flow normally
+             *  send a warning when execution is done
+             */
+            setAllNotificationsAsInexact();
+            warning = OSLCNOWarning.EXACT_PERMISSION;
         }
 
         schedule(notificationArguments, callbackContext);
@@ -675,15 +677,10 @@ public class LocalNotification extends CordovaPlugin {
      */
     private void sendScheduleResult(CallbackContext command,
                                     PluginResult.Status status,
-                                    OSLCNOError error) {
-
-        if(error == null) {
-            command.sendPluginResult(new PluginResult(status));
-            return;
-        }
-
-        JSONObject errorJSON = error.toJSONObject();;
-        command.sendPluginResult(new PluginResult(status, errorJSON));
+                                    OSLCNOPluginMessage message) {
+        command.sendPluginResult(message != null ?
+                new PluginResult(status, message.toJSONObject()) :
+                new PluginResult(status));
     }
 
     /**
