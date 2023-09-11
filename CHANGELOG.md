@@ -4,6 +4,8 @@ ChangeLog
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
 
 #### Unreleased
+### 11-09-2023
+- Android: Replace dependency on Android Support Libraries with AndroidX [RMET-2823](https://outsystemsrd.atlassian.net/browse/RMET-2823)
 
 #### Version 0.9.11 (28.08.2023)
 ### 04-08-2023
