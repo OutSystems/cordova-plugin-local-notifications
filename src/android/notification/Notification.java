@@ -246,7 +246,7 @@ public final class Notification {
                         context, 0, intent, FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             } else if (SDK_INT >= 31) {
                 pi = PendingIntent.getBroadcast(
-                        context, 0, intent, FLAG_CANCEL_CURRENT | 33554432);
+                        context, 0, intent, FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE);
             } else {
                 pi = PendingIntent.getBroadcast(
                         context, 0, intent, FLAG_CANCEL_CURRENT);
@@ -372,7 +372,7 @@ public final class Notification {
                         context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
             } else if (SDK_INT >= 31) {
                 pi = PendingIntent.getBroadcast(
-                        context, 0, intent, 33554432);
+                        context, 0, intent, PendingIntent.FLAG_MUTABLE);
             } else {
                 pi = PendingIntent.getBroadcast(
                         context, 0, intent, 0);
