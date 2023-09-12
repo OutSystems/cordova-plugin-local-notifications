@@ -325,19 +325,17 @@ public final class Builder {
 
         int reqCode = random.nextInt();
 
-        PendingIntent deleteIntent;
+        int flags;
 
         if (SDK_INT >= 34) {
-            deleteIntent = PendingIntent.getBroadcast(
-                    context, reqCode, intent, FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            flags = FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         } else if (SDK_INT >= 31) {
-            deleteIntent = PendingIntent.getBroadcast(
-                    context, reqCode, intent, FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+            flags = FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
         } else {
-            deleteIntent = PendingIntent.getBroadcast(
-                    context, reqCode, intent, FLAG_UPDATE_CURRENT);
+            flags = FLAG_UPDATE_CURRENT;
         }
 
+        PendingIntent deleteIntent = PendingIntent.getBroadcast(context, reqCode, intent, flags);
         builder.setDeleteIntent(deleteIntent);
     }
 
@@ -354,8 +352,6 @@ public final class Builder {
 
         int reqCode = random.nextInt();
 
-        PendingIntent contentIntent;
-
         Bundle myBundle = new Bundle();
         myBundle.putInt(Notification.EXTRA_ID, options.getId());
         myBundle.putString(Action.EXTRA_ID, Action.CLICK_ACTION_ID);
@@ -369,17 +365,17 @@ public final class Builder {
             myIntent.putExtras(extras);
         }
 
+        int flags;
+
         if (SDK_INT >= 34) {
-            contentIntent = PendingIntent.getActivity(
-                    context, reqCode, myIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         } else if (SDK_INT >= 31) {
-            contentIntent = PendingIntent.getActivity(
-                    context, reqCode, myIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+            flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
         } else {
-            contentIntent = PendingIntent.getActivity(
-                    context, reqCode, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            flags = PendingIntent.FLAG_UPDATE_CURRENT;
         }
 
+        PendingIntent contentIntent = PendingIntent.getActivity(context, reqCode, myIntent, flags);
         builder.setContentIntent(contentIntent);
     }
 
@@ -427,20 +423,17 @@ public final class Builder {
 
         int reqCode = random.nextInt();
 
-        PendingIntent toReturn;
+        int flags;
 
         if (SDK_INT >= 34) {
-            toReturn = PendingIntent.getService(
-                    context, reqCode, intent, FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            flags = FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         } else if (SDK_INT >= 31) {
-            toReturn = PendingIntent.getService(
-                    context, reqCode, intent, FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+            flags = FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
         } else {
-            toReturn = PendingIntent.getService(
-                    context, reqCode, intent, FLAG_UPDATE_CURRENT);
+            flags = FLAG_UPDATE_CURRENT;
         }
 
-        return toReturn;
+        return PendingIntent.getService(context, reqCode, intent, flags);
     }
 
     /**
