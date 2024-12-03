@@ -3,10 +3,9 @@ ChangeLog
 
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
 
-#### Unreleased
-
+#### Version 0.9.14 (03.12.2024)
 ### 25-11-2024
-- Android: Fix endless loop of notification permission denial when granting exact alarm permission
+- Android: Fix endless loop of notification permission denial when granting exact alarm permission.
 
 #### Version 0.9.13 (07.10.2024)
 ### 07-10-2024
