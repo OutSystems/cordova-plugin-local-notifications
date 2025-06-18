@@ -98,7 +98,7 @@
             </feature>
         </config-file>
 
-        <edit-config target="AndroidManifest.xml" parent="application">
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <provider
                 android:name="de.appplant.cordova.plugin.notification.util.AssetProvider"
                 android:authorities="${applicationId}.provider"
@@ -135,14 +135,14 @@
                 android:launchMode="singleTask"
                 android:name="de.appplant.cordova.plugin.localnotification.ClickActivity"
                 android:theme="@android:style/Theme.NoDisplay" />
-        </edit-config>
+        </config-file>
 
-        <edit-config target="AndroidManifest.xml" parent="/*">
+        <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
             <uses-permission android:name="android.permission.WAKE_LOCK" />
             <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
             <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-        </edit-config>
+        </config-file>
 
         <source-file
             src="src/android/xml/localnotification_provider_paths.xml"
