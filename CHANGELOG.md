@@ -3,6 +3,11 @@ ChangeLog
 
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
 
+#### Unreleased
+
+### 26-06-2025
+- iOS: Add hook to add set `handleApplicationNotifications` (https://outsystemsrd.atlassian.net/browse/RMET-3658).
+
 #### Version 0.9.14 (03.12.2024)
 ### 25-11-2024
 - Android: Fix endless loop of notification permission denial when granting exact alarm permission.
