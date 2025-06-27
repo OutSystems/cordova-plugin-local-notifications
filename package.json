@@ -51,5 +51,8 @@
   "bugs": {
     "url": "https://github.com/katzer/cordova-plugin-local-notifications/issues"
   },
-  "homepage": "https://github.com/katzer/cordova-plugin-local-notifications#readme"
+  "homepage": "https://github.com/katzer/cordova-plugin-local-notifications#readme",
+  "scripts": {
+    "capacitor:update:after": "node capacitor_hooks/sethandleApplicationNotifications.js"
+  }
 }
