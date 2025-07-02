@@ -3,8 +3,7 @@ ChangeLog
 
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
 
-#### Unreleased
-
+#### Version 0.9.15 (02.07.2025)
 ### 26-06-2025
 - iOS: Add hook to add set `handleApplicationNotifications` (https://outsystemsrd.atlassian.net/browse/RMET-3658).
 
