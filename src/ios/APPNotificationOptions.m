@@ -173,7 +173,7 @@ static NSInteger WEEKDAYS[8] = { 0, 2, 3, 4, 5, 6, 7, 1 };
     }
 
     if (!path.length)
-        return NULL;
+        return [UNNotificationSound defaultSound];
 
     if ([path hasPrefix:@"file:/"]) {
         file = [self soundNameForAsset:path];
