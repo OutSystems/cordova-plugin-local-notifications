@@ -4,6 +4,7 @@
  * Apache 2.0 License
  *
  * Copyright (c) Sebastian Katzer 2017
+ * Copyright (c) Manuel Beck 2024
  *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apache License
@@ -24,7 +25,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-local-notification"
-        version="0.9.15">
+        version="1.2.1+0.0.1">
 
     <name>LocalNotification</name>
 
@@ -32,25 +33,13 @@
 
     <repo>https://github.com/katzer/cordova-plugin-local-notifications.git</repo>
 
-    <keywords>appplant, notification, local notification, user notification</keywords>
+    <keywords>notification, local notification, user notification</keywords>
 
     <license>Apache 2.0</license>
 
-    <author>Sebastián Katzer</author>
+    <author>Sebastián Katzer and Manuel Beck</author>
 
-    <!-- cordova -->
-    <engines>
-        <engine name="cordova"         version=">=7.1.0"  />
-        <engine name="cordova-plugman" version=">=4.3.0"  />
-        <engine name="cordova-android" version=">=6.3.0"  />
-        <engine name="cordova-windows" version=">=4.2.0"  />
-        <engine name="android-sdk"     version=">=26" />
-        <engine name="apple-ios"       version=">=10.0.0" />
-    </engines>
-
-    <!-- dependencies -->
-    <dependency id="cordova-plugin-device" />
-    <dependency id="cordova-plugin-badge" url="https://github.com/OutSystems/cordova-plugin-badge.git#0.8.8-OS" />
+    <dependency id="cordova-plugin-device" version=">=3.0.0" />
 
     <!-- js -->
     <js-module src="www/local-notification.js" name="LocalNotification">
@@ -90,7 +79,19 @@
 
     <!-- android -->
     <platform name="android">
+        <!--
+          Enable Cordova-Android's Kotlin support
+          Note: This is only needed for Cordova-Android 13.0.0 and lower.
+          For cordova-android 14.0.0 this can be removed.
+        -->
+        <config-file target="config.xml" parent="/*">
+            <preference name="GradlePluginKotlinEnabled" value="true" />
+        </config-file>
+
         <framework src="src/android/build/localnotification.gradle" custom="true" type="gradleReference"/>
+
+        <preference name="ANDROIDX_CORE_VERSION" default="1.12.0"/>
+        <framework src="androidx.core:core:$ANDROIDX_CORE_VERSION" />
 
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="LocalNotification">
@@ -99,35 +100,76 @@
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
+
+            <!--
+              FileProvider to share files located in "[App path]/files/shared_files" and make them accessible through an content:// Uri.
+              Asset files, where the www files are, are not accessible by a "file:///android_asset"  Uri. To make them
+              accessible, they are copied to a shared folder and can be accessed by a content:// Uri.
+              You can also put your own files there with cordova-plugin-file. To access the directory use
+              cordova.file.dataDirectory + 'shared_files'. To use the file in this plugin, you can use "shared://myFile.png",
+              which would point to cordova.file.dataDirectory + 'shared_files/myFile.png'.
+
+              Explanation of the attributes:
+              android:exported="false": The FileProvider ist not public
+              android:grantUriPermissions="true": Grant temporary access to files
+            -->
             <provider
-                android:name="de.appplant.cordova.plugin.notification.util.AssetProvider"
-                android:authorities="${applicationId}.provider"
+                android:name="de.appplant.cordova.plugin.localnotification.util.PluginFileProvider"
+                android:authorities="${applicationId}.localnotifications.provider"
                 android:exported="false"
-                android:grantUriPermissions="true" >
+                android:grantUriPermissions="true">
                 <meta-data
                     android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/localnotification_provider_paths"/>
+                    android:resource="@xml/shared_files_provider_paths"/>
             </provider>
 
+            <!--
+              Notification was clicked by the user
+
+              Attributes:
+
+              - android:taskAffinity="" : Combined with the FLAG_ACTIVITY_NEW_TASK flag that you use in code,
+                set this attribute blank to ensure this activity doesn't go into the app's default task.
+                Any existing tasks that have the app's default affinity aren't affected.
+            -->
+            <activity
+                android:name="de.appplant.cordova.plugin.localnotification.NotificationClickActivity"
+                android:exported="false"
+                android:taskAffinity=""
+                android:excludeFromRecents="true" />
+            
+            <!-- A notification will be triggered/shown -->
             <receiver
-                android:name="de.appplant.cordova.plugin.localnotification.TriggerReceiver"
+                android:name="de.appplant.cordova.plugin.localnotification.receiver.TriggerReceiver"
+                android:exported="false" />
+
+            <!-- Notification cleared by the user -->
+            <receiver
+                android:name="de.appplant.cordova.plugin.localnotification.receiver.ClearReceiver"
                 android:exported="false" />
 
             <receiver
-                android:name="de.appplant.cordova.plugin.localnotification.ClearReceiver"
-                android:exported="false" />
-
-            <service
-                android:name="de.appplant.cordova.plugin.localnotification.ClickReceiver"
-                android:exported="false" />
-
-            <receiver
-                android:name="de.appplant.cordova.plugin.localnotification.RestoreReceiver"
-                android:directBootAware="true"
+                android:name="de.appplant.cordova.plugin.localnotification.receiver.RestoreReceiver"
                 android:exported="false" >
                 <intent-filter>
-                    <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                    <!--
+                      Reschedule all alarms, when the device is booted and unlocked by the user
+                    -->
                     <action android:name="android.intent.action.BOOT_COMPLETED" />
+
+                    <!--
+                      Reschedule all alarms, when the app is updated
+                    -->
+                    <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+
+                    <!--
+                     An app is granted the Manifest.permission.SCHEDULE_EXACT_ALARM permission.
+                     When the user revokes the Manifest.permission.SCHEDULE_EXACT_ALARM permission, all alarms scheduled with
+                     setExact(int, long, PendingIntent), setExactAndAllowWhileIdle(int, long, PendingIntent) and setAlarmClock(android.app.AlarmManager.AlarmClockInfo, android.app.PendingIntent)
+                     will be deleted.
+                     This broadcast will not be sent when the user revokes the permission.
+                    -->
+                    <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
                 </intent-filter>
             </receiver>
             <activity
@@ -139,13 +181,16 @@
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+            <!-- Needed, to turn the screen on, when a notification is posted -->
             <uses-permission android:name="android.permission.WAKE_LOCK" />
-            <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+            <!-- Runtime permission for Android 13 and higher to post notifications -->
             <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
         </config-file>
 
         <source-file
-            src="src/android/xml/localnotification_provider_paths.xml"
+            src="src/android/xml/shared_files_provider_paths.xml"
             target-dir="res/xml" />
 
         <source-file
@@ -165,108 +210,72 @@
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
-            src="src/android/TriggerReceiver.java"
+            src="src/android/NotificationClickActivity.java"
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
-            src="src/android/ClickReceiver.java"
+            src="src/android/receiver/ClearReceiver.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/receiver" />
+
+        <source-file
+            src="src/android/receiver/RestoreReceiver.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/receiver" />
+
+        <source-file
+            src="src/android/receiver/TriggerReceiver.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/receiver" />
+
+        <source-file
+            src="src/android/action/Action.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/action" />
+
+        <source-file
+            src="src/android/action/ActionGroup.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/action" />
+
+        <source-file
+            src="src/android/trigger/TriggerHandler.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/trigger" />
+
+        <source-file
+            src="src/android/trigger/TriggerHandlerAt.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/trigger" />
+
+        <source-file
+            src="src/android/trigger/TriggerHandlerIn.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/trigger" />
+
+        <source-file
+            src="src/android/trigger/TriggerHandlerEvery.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/trigger" />
+
+        <source-file
+            src="src/android/util/PluginFileProvider.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/util" />
+
+        <source-file
+            src="src/android/util/AssetUtil.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/util" />
+
+        <source-file
+            src="src/android/util/CallbackContextUtil.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification/util" />
+
+        <source-file
+            src="src/android/Manager.java"
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
-            src="src/android/ClickActivity.java"
-            target-dir="src/de/appplant/cordova/plugin/localnotification" />    
-
-        <source-file
-            src="src/android/ClearReceiver.java"
+            src="src/android/Notification.java"
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
-            src="src/android/RestoreReceiver.java"
+            src="src/android/Options.java"
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
-            src="src/android/notification/action/Action.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/action" />
-
-        <source-file
-            src="src/android/notification/action/ActionGroup.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/action" />
-
-        <source-file
-            src="src/android/notification/receiver/AbstractClearReceiver.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/receiver" />
-
-        <source-file
-            src="src/android/notification/receiver/AbstractClickReceiver.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/receiver" />
-
-        <source-file
-            src="src/android/notification/receiver/AbstractClickActivity.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/receiver" />
-
-        <source-file
-            src="src/android/notification/receiver/AbstractRestoreReceiver.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/receiver" />
-
-        <source-file
-            src="src/android/notification/receiver/AbstractTriggerReceiver.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/receiver" />
-
-        <source-file
-            src="src/android/notification/trigger/DateTrigger.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/trigger" />
-
-        <source-file
-            src="src/android/notification/trigger/IntervalTrigger.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/trigger" />
-
-        <source-file
-            src="src/android/notification/trigger/MatchTrigger.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/trigger" />
-
-        <source-file
-            src="src/android/notification/util/AssetProvider.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/util" />
-
-        <source-file
-            src="src/android/notification/util/AssetUtil.java"
-            target-dir="src/de/appplant/cordova/plugin/notification/util" />
-
-        <source-file
-            src="src/android/notification/Builder.java"
-            target-dir="src/de/appplant/cordova/plugin/notification" />
-
-        <source-file
-            src="src/android/notification/Manager.java"
-            target-dir="src/de/appplant/cordova/plugin/notification" />
-
-        <source-file
-            src="src/android/notification/Notification.java"
-            target-dir="src/de/appplant/cordova/plugin/notification" />
-
-        <source-file
-            src="src/android/notification/Options.java"
-            target-dir="src/de/appplant/cordova/plugin/notification" />
-
-        <source-file
-            src="src/android/notification/Request.java"
-            target-dir="src/de/appplant/cordova/plugin/notification" />
-    </platform>
-
-    <!-- windows -->
-    <platform name="windows">
-
-        <framework src="src/windows/lib.UW/x86/LocalNotificationProxy.winmd" target-dir="x86" arch="x86" custom="true"/>
-        <framework src="src/windows/lib.UW/x64/LocalNotificationProxy.winmd" target-dir="x64" arch="x64" custom="true"/>
-        <framework src="src/windows/lib.UW/ARM/LocalNotificationProxy.winmd" target-dir="ARM" arch="ARM" custom="true"/>
-
-        <framework src="src/windows/lib.UW/x86/Microsoft.Toolkit.Uwp.Notifications.dll" target-dir="x86" arch="x86" custom="true"/>
-        <framework src="src/windows/lib.UW/x64/Microsoft.Toolkit.Uwp.Notifications.dll" target-dir="x64" arch="x64" custom="true"/>
-        <framework src="src/windows/lib.UW/ARM/Microsoft.Toolkit.Uwp.Notifications.dll" target-dir="ARM" arch="ARM" custom="true"/>
-
-        <js-module src="src/windows/LocalNotificationProxy.js" name="LocalNotification.Proxy" >
-            <merges target="" />
-        </js-module>
+            src="src/android/OptionsTrigger.java"
+            target-dir="src/de/appplant/cordova/plugin/localnotification" />
     </platform>
 
 </plugin>

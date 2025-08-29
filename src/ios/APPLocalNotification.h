@@ -30,8 +30,8 @@
 
 - (void) actions:(CDVInvokedUrlCommand*)command;
 
-- (void) check:(CDVInvokedUrlCommand*)command;
-- (void) request:(CDVInvokedUrlCommand*)command;
+- (void) hasPermission:(CDVInvokedUrlCommand*)command;
+- (void) requestPermission:(CDVInvokedUrlCommand*)command;
 
 - (void) schedule:(CDVInvokedUrlCommand*)command;
 - (void) update:(CDVInvokedUrlCommand*)command;
@@ -48,5 +48,9 @@
 
 - (void) notification:(CDVInvokedUrlCommand*)command;
 - (void) notifications:(CDVInvokedUrlCommand*)command;
+
+- (void) openNotificationSettings:(CDVInvokedUrlCommand*)command;
+
+- (void) clearBadge:(CDVInvokedUrlCommand*)command;
 
 @end
