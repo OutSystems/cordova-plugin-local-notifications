@@ -183,23 +183,33 @@ static NSInteger WEEKDAYS[8] = { 0, 2, 3, 4, 5, 6, 7, 1 };
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *resPath = [mainBundle resourcePath];
         NSError *error = nil;
-        NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[resPath stringByAppendingPathComponent:@"www"] error:&error];
 
-        if (files) {
+        NSArray<NSString *> *searchFolders = @[@"www", @"public"];
+
+        for (NSString *folder in searchFolders) {
+            NSString *folderPath = [resPath stringByAppendingPathComponent:folder];
+            NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folderPath error:&error];
+            
+            if (!files) {
+                continue;
+            }
+            
             NSString *base = [path stringByDeletingPathExtension];
             NSString *ext = [path pathExtension];
             NSString *exactFile = [NSString stringWithFormat:@"%@.%@", base, ext];
             
             if ([files containsObject:exactFile]) {
-                file = [NSString stringWithFormat:@"www/%@", exactFile];
-            } else {
-                NSString *pattern = [NSString stringWithFormat:@"^%@__.+\\.%@$", base, ext];
-                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES[c] %@", pattern];
-                NSArray *matches = [files filteredArrayUsingPredicate:predicate];
-                
-                if (matches.count > 0) {
-                    file = [NSString stringWithFormat:@"www/%@", matches[0]];
-                }
+                file = [NSString stringWithFormat:@"%@/%@", folder, exactFile];
+                break;
+            }
+            
+            NSString *pattern = [NSString stringWithFormat:@"^%@__.+\\.%@$", base, ext];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES[c] %@", pattern];
+            NSArray *matches = [files filteredArrayUsingPredicate:predicate];
+            
+            if (matches.count > 0) {
+                file = [NSString stringWithFormat:@"%@/%@", folder, matches[0]];
+                break;
             }
         }
     }
