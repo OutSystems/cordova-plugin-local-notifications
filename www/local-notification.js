@@ -1090,3 +1090,12 @@ exports._deepCopy = function (object) {
 exports._dateToNumber = function (date) {
     return date instanceof Date ? date.getTime() : date;
 };
+
+/**
+ * Inform that webapp is ready, listeners are registered
+ * and all queued event can be executed
+ */
+exports.deviceReady = function() {
+    exports._exec('ready');
+};
+

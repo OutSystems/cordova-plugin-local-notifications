@@ -163,7 +163,7 @@ static NSInteger WEEKDAYS[8] = { 0, 2, 3, 4, 5, 6, 7, 1 };
 {
     NSString* soundPath = dict[@"sound"];
 
-    if (soundPath == NULL || [soundPath length] == 0 ) return NULL;
+    if (soundPath == NULL || [soundPath length] == 0 ) return [UNNotificationSound defaultSound];
 
     if ([soundPath isEqualToString:@"default"]) {
         return [UNNotificationSound defaultSound];
@@ -180,23 +180,33 @@ static NSInteger WEEKDAYS[8] = { 0, 2, 3, 4, 5, 6, 7, 1 };
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *resPath = [mainBundle resourcePath];
         NSError *error = nil;
-        NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[resPath stringByAppendingPathComponent:@"www"] error:&error];
 
-        if (files) {
-            NSString *base = [path stringByDeletingPathExtension];
-            NSString *ext = [path pathExtension];
+        NSArray<NSString *> *searchFolders = @[@"www", @"public"];
+
+        for (NSString *folder in searchFolders) {
+            NSString *folderPath = [resPath stringByAppendingPathComponent:folder];
+            NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folderPath error:&error];
+            
+            if (!files) {
+                continue;
+            }
+            
+            NSString *base = [soundPath stringByDeletingPathExtension];
+            NSString *ext = [soundPath pathExtension];
             NSString *exactFile = [NSString stringWithFormat:@"%@.%@", base, ext];
             
             if ([files containsObject:exactFile]) {
-                soundPath = [NSString stringWithFormat:@"www/%@", exactFile];
-            } else {
-                NSString *pattern = [NSString stringWithFormat:@"^%@__.+\\.%@$", base, ext];
-                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES[c] %@", pattern];
-                NSArray *matches = [files filteredArrayUsingPredicate:predicate];
-                
-                if (matches.count > 0) {
-                    soundPath = [NSString stringWithFormat:@"www/%@", matches[0]];
-                }
+                soundPath = [NSString stringWithFormat:@"%@/%@", folder, exactFile];
+                break;
+            }
+            
+            NSString *pattern = [NSString stringWithFormat:@"^%@__.+\\.%@$", base, ext];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES[c] %@", pattern];
+            NSArray *matches = [files filteredArrayUsingPredicate:predicate];
+            
+            if (matches.count > 0) {
+                soundPath = [NSString stringWithFormat:@"%@/%@", folder, matches[0]];
+                break;
             }
         }
     }
