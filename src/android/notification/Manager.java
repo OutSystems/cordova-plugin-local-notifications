@@ -31,6 +31,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioAttributes;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
@@ -126,19 +127,19 @@ public final class Manager {
     @SuppressLint("WrongConstant")
     private void createDefaultChannel() {
         createNotificationChannel(
-            CHANNEL_ID,
-            CHANNEL_NAME,
-            IMPORTANCE_DEFAULT,
-            null
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                IMPORTANCE_DEFAULT,
+                null
         );
     }
 
     private void createChannel(Options options) {
         createNotificationChannel(
-            options.getChannel(),
-            options.getChannel(),
-            IMPORTANCE_DEFAULT,
-            options.getSound()
+                options.getChannel(),
+                options.getChannel(),
+                IMPORTANCE_DEFAULT,
+                options.getSound()
         );
     }
 
@@ -149,13 +150,14 @@ public final class Manager {
         if (channel != null) return;
 
         channel = new NotificationChannel(id, name, importance);
-        if (soundUri != null) {
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                    .build();
-            channel.setSound(soundUri, audioAttributes);
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build();
+        if (soundUri == null || soundUri.toString().isEmpty()) {
+            soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }
+        channel.setSound(soundUri, audioAttributes);
         mgr.createNotificationChannel(channel);
     }
 
