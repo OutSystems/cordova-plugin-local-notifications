@@ -136,16 +136,7 @@ public final class AssetUtil {
         }
 
         String fileName = resolvedPath.substring(resolvedPath.lastIndexOf('/') + 1);
-
-        File notificationsDir = new File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_NOTIFICATIONS),
-                context.getPackageName()
-        );
-        if (!notificationsDir.exists()) {
-            notificationsDir.mkdirs();
-        }
-
-        File file = new File(notificationsDir, fileName);
+        File file = new File(context.getExternalFilesDir(null), fileName);
 
         try {
             if (!file.exists()) {
@@ -158,7 +149,7 @@ public final class AssetUtil {
             return Uri.EMPTY;
         }
 
-        return Uri.fromFile(file);
+        return getUriFromFile(file);
     }
 
     /**
