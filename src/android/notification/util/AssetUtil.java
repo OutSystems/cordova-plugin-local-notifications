@@ -95,10 +95,10 @@ public final class AssetUtil {
             return Uri.parse(path);
         }
 
-        return resolveFile(path);
+        return resolveAssetFromFilePath(path);
     }
 
-    public Uri resolveFile(String path) {
+    public Uri resolveAssetFromFilePath(String path) {
         String[] searchFolders = {"www", "public"};
         AssetManager assetManager = context.getAssets();
 
