@@ -28,6 +28,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Log;
 
@@ -94,7 +95,70 @@ public final class AssetUtil {
             return Uri.parse(path);
         }
 
-        return Uri.EMPTY;
+        return resolveFile(path);
+    }
+
+    public Uri resolveFile(String path) {
+        String[] searchFolders = {"www", "public"};
+        AssetManager assetManager = context.getAssets();
+
+        String base = path.contains(".") ? path.substring(0, path.lastIndexOf(".")) : path;
+        String ext = path.contains(".") ? path.substring(path.lastIndexOf(".") + 1) : "";
+
+        String resolvedPath = "";
+        for (String folder : searchFolders) {
+            try {
+                String[] files = assetManager.list(folder);
+                if (files == null) continue;
+
+                for (String f : files) {
+                    if (f.equalsIgnoreCase(path)) {
+                        resolvedPath = folder + "/" + f;
+                        break;
+                    }
+                }
+
+                String regex = "^" + base + "__.+\\." + ext + "$";
+                for (String f : files) {
+                    if (f.matches("(?i)" + regex)) {
+                        resolvedPath = folder + "/" + f;
+                        break;
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (resolvedPath.isEmpty()) {
+            return Uri.EMPTY;
+        }
+
+        String fileName = resolvedPath.substring(resolvedPath.lastIndexOf('/') + 1);
+
+        File notificationsDir = new File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_NOTIFICATIONS),
+                context.getPackageName()
+        );
+        if (!notificationsDir.exists()) {
+            notificationsDir.mkdirs();
+        }
+
+        File file = new File(notificationsDir, fileName);
+
+        try {
+            if (!file.exists()) {
+                InputStream in = assetManager.open(resolvedPath);
+                FileOutputStream out = new FileOutputStream(file);
+                copyFile(in, out);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Uri.EMPTY;
+        }
+
+        return Uri.fromFile(file);
     }
 
     /**
