@@ -215,7 +215,14 @@ public final class Options {
      * The channel id of that notification.
      */
     String getChannel() {
-        return options.optString("channel", Manager.CHANNEL_ID);
+        String channelId = options.optString("channel", null);
+        if (channelId == null || channelId.isEmpty()) {
+            String soundPath = getSound();
+            String soundSuffix = soundPath.isEmpty() ? "" : "." + soundPath.substring(soundPath.lastIndexOf('/') + 1);
+            channelId = Manager.CHANNEL_ID + "." + soundSuffix;
+        }
+
+        return channelId;
     }
 
     /**
@@ -347,8 +354,15 @@ public final class Options {
     /**
      * Sound file path for the local notification.
      */
-    Uri getSound() {
-        return assets.parse(options.optString("sound", null));
+    String getSound() {
+        return options.optString("sound", null);
+    }
+
+    /**
+     * Sound file URI for the local notification.
+     */
+    Uri getSoundUri() {
+        return assets.parse(getSound());
     }
 
     /**

@@ -118,7 +118,7 @@ public final class Builder {
             return new Notification(context, options);
         }
 
-        Uri sound     = options.getSound();
+        Uri sound     = options.getSoundUri();
         Bundle extras = new Bundle();
 
         extras.putInt(Notification.EXTRA_ID, options.getId());

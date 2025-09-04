@@ -23,18 +23,17 @@
 
 package de.appplant.cordova.plugin.notification;
 
-import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
+
 import androidx.core.app.NotificationManagerCompat;
 
 import org.json.JSONException;
@@ -45,11 +44,10 @@ import java.util.List;
 import java.util.Set;
 
 import de.appplant.cordova.plugin.badge.BadgeImpl;
+import de.appplant.cordova.plugin.notification.util.AssetUtil;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.M;
-import static android.os.Build.VERSION_CODES.O;
-import static androidx.core.app.NotificationManagerCompat.IMPORTANCE_DEFAULT;
 import static de.appplant.cordova.plugin.notification.Notification.PREF_KEY_ID;
 import static de.appplant.cordova.plugin.notification.Notification.Type.SCHEDULED;
 import static de.appplant.cordova.plugin.notification.Notification.Type.TRIGGERED;
@@ -77,7 +75,6 @@ public final class Manager {
      */
     private Manager(Context context) {
         this.context = context;
-        createDefaultChannel();
     }
 
     /**
@@ -121,44 +118,36 @@ public final class Manager {
         return toast;
     }
 
-    /**
-     * TODO: temporary
-     */
-    @SuppressLint("WrongConstant")
-    private void createDefaultChannel() {
-        createNotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                IMPORTANCE_DEFAULT,
-                null
-        );
-    }
-
     private void createChannel(Options options) {
-        createNotificationChannel(
-                options.getChannel(),
-                options.getChannel(),
-                IMPORTANCE_DEFAULT,
-                options.getSound()
-        );
-    }
-
-    private void createNotificationChannel(String id, CharSequence name, int importance, Uri soundUri) {
-        if (SDK_INT < O) return;
-        NotificationManager mgr = getNotMgr();
-        NotificationChannel channel = mgr.getNotificationChannel(id);
+        String channelId = options.getChannel();
+        NotificationManager notificationManager = getNotMgr();
+        NotificationChannel channel = notificationManager.getNotificationChannel(channelId);
         if (channel != null) return;
 
-        channel = new NotificationChannel(id, name, importance);
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                .build();
-        if (soundUri == null || soundUri.toString().isEmpty()) {
+        channel = new NotificationChannel(channelId, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+
+        Uri soundUri = getSoundUri(options.getSound());
+        channel.setSound(
+                soundUri,
+                new AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .build()
+        );
+
+        notificationManager.createNotificationChannel(channel);
+    }
+
+    private Uri getSoundUri(String soundPath) {
+        if (soundPath == null || soundPath.isEmpty()) {
+            return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        }
+
+        Uri soundUri = AssetUtil.getInstance(context).parse(soundPath);
+        if (soundUri == null || soundUri.equals(Uri.EMPTY)) {
             soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }
-        channel.setSound(soundUri, audioAttributes);
-        mgr.createNotificationChannel(channel);
+        return soundUri;
     }
 
     /**

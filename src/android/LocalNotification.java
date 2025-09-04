@@ -170,14 +170,6 @@ public class LocalNotification extends CordovaPlugin {
                     actions(args, command);
                 } else
                 if (action.equals("schedule")) {
-                    for (int i = 0; i < args.length(); i++) {
-                        try {
-                            JSONObject obj = args.getJSONObject(i);
-                            if (!obj.has("channel") || obj.isNull("channel")) {
-                                obj.put("channel", UUID.randomUUID().toString());
-                            }
-                        } catch (JSONException ignored) {}
-                    }
                     schedule(args, command, true);
                 } else
                 if (action.equals("update")) {
