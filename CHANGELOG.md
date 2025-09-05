@@ -3,6 +3,10 @@ ChangeLog
 
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
 
+#### Version 0.9.16 (05.09.2025)
+### 05-09-2025
+- Fixes an issue where custom notification sounds were not playing. [RMET-4280](https://outsystemsrd.atlassian.net/browse/RMET-4280)
+
 #### Version 0.9.15 (02.07.2025)
 ### 26-06-2025
 - iOS: Add hook to add set `handleApplicationNotifications` (https://outsystemsrd.atlassian.net/browse/RMET-3658).

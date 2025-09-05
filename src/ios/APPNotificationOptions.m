@@ -173,13 +173,45 @@ static NSInteger WEEKDAYS[8] = { 0, 2, 3, 4, 5, 6, 7, 1 };
     }
 
     if (!path.length)
-        return NULL;
+        return [UNNotificationSound defaultSound];
 
     if ([path hasPrefix:@"file:/"]) {
         file = [self soundNameForAsset:path];
-    } else
-    if ([path hasPrefix:@"res:"]) {
+    } else if ([path hasPrefix:@"res:"]) {
         file = [self soundNameForResource:path];
+    } else {
+        NSBundle *mainBundle = [NSBundle mainBundle];
+        NSString *resPath = [mainBundle resourcePath];
+        NSError *error = nil;
+
+        NSArray<NSString *> *searchFolders = @[@"www", @"public"];
+
+        for (NSString *folder in searchFolders) {
+            NSString *folderPath = [resPath stringByAppendingPathComponent:folder];
+            NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folderPath error:&error];
+            
+            if (!files) {
+                continue;
+            }
+            
+            NSString *base = [path stringByDeletingPathExtension];
+            NSString *ext = [path pathExtension];
+            NSString *exactFile = [NSString stringWithFormat:@"%@.%@", base, ext];
+            
+            if ([files containsObject:exactFile]) {
+                file = [NSString stringWithFormat:@"%@/%@", folder, exactFile];
+                break;
+            }
+            
+            NSString *pattern = [NSString stringWithFormat:@"^%@__.+\\.%@$", base, ext];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES[c] %@", pattern];
+            NSArray *matches = [files filteredArrayUsingPredicate:predicate];
+            
+            if (matches.count > 0) {
+                file = [NSString stringWithFormat:@"%@/%@", folder, matches[0]];
+                break;
+            }
+        }
     }
 
     return [UNNotificationSound soundNamed:file];
