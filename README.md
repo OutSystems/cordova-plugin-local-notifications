@@ -3,7 +3,7 @@
 
 <br>
 
-:warning: This plugin is SUPPORTED by OutSystems. Customers entitled to Support Services may obtain assistance through Support.
+:warning: This plugin is SUPPORTED by OutSystems. Customers entitled to Support Services may obtain assistance through Support
 
 <p align="center">
     <img src="images/logo.png">
