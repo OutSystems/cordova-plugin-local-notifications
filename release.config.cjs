@@ -11,7 +11,7 @@ module.exports = {
       {
         preset: 'angular',
         // Disable BREAKING CHANGE footer parsing so it can never trigger a major bump.
-        // This is intentional: this repo is a fork that must stay on patch-only releases.
+        // This is intentional: this repo is a fork that is meant to on patch-only releases.
         parserOpts: {
           noteKeywords: [],
         },
@@ -22,9 +22,6 @@ module.exports = {
           { type: 'perf', release: 'patch' },
           { type: 'chore', release: 'patch' },
           { type: 'docs', release: 'patch' },
-          { type: 'style', release: 'patch' },
-          { type: 'test', release: 'patch' },
-          { type: 'ci', release: 'patch' },
           { type: 'build', release: 'patch' },
         ],
       },
