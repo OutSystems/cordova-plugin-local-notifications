@@ -1,4 +1,8 @@
-ChangeLog
+
+---------
+
+## ChangeLog (old)
+
 ---------
 
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
