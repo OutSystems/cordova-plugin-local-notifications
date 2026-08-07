@@ -1,3 +1,4 @@
+# [1.0.0](https://github.com/OutSystems/cordova-plugin-local-notifications/compare/0.9.16...1.0.0) (2026-08-07)
 
 ---------
 
